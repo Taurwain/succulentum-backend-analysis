@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 
-def seed_database():
+def fill_test_data():
     DB_PATH = 'succulentum.db'
 
     if not os.path.exists(DB_PATH):
@@ -23,4 +23,4 @@ def seed_database():
 
 
 if __name__ == "__main__":
-    seed_database()
+    fill_test_data()

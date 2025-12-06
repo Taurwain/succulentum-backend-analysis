@@ -8,7 +8,7 @@ def create_database():
     if os.path.exists(DB_PATH):
         response = input("База данных уже существует. Пересоздать? (y/n): ")
         if response.lower() != 'y':
-            return
+            return -1
         os.remove(DB_PATH)
 
     conn = sqlite3.connect(DB_PATH)
@@ -17,15 +17,18 @@ def create_database():
 
     cursor.execute("PRAGMA foreign_keys = ON")
 
-    sql_script_paths = ['scripts/create_plants.sql',
-                        'scripts/create_plant_events.sql',
-                        'scripts/create_plant_health_checks.sql']
+    sql_files = [
+        'scripts/create_plants.sql',
+        'scripts/create_plant_events.sql'
+    ]
 
-    for script_path in sql_script_paths:
-        if os.path.exists(script_path):
-            with open(script_path, 'r', encoding='utf-8') as f:
+    for sql_file in sql_files:
+        if os.path.exists(sql_file):
+            with open(sql_file, 'r', encoding='utf-8') as f:
                 sql_script = f.read()
                 cursor.executescript(sql_script)
+        else:
+            return -1
 
     conn.commit()
     conn.close()
