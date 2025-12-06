@@ -28,8 +28,3 @@ event_type (enum: 'полив', 'пересадка', 'удобрение', 'о�
 event_date (datetime)
 event_description (text, 500 chars)
 ```
-growth_phase (enum: 'покой', 'вегетация', 'цветение')
-pests_detected (text, 200 chars)
-diseases_detected (text, 200 chars)
-notes (text, 500 chars)
-```
