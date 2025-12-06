@@ -1,38 +1,53 @@
 import sqlite3
-import os
+from pathlib import Path
 
 
 def create_database():
-    DB_PATH = 'succulentum.db'
+    current_dir = Path(__file__).parent
+    DB_PATH = current_dir / 'succulentum.db'
 
-    if os.path.exists(DB_PATH):
+    print(f"Путь к БД: {DB_PATH}")
+
+    if DB_PATH.exists():
         response = input("База данных уже существует. Пересоздать? (y/n): ")
         if response.lower() != 'y':
+            print("Отмена создания базы данных")
             return -1
-        os.remove(DB_PATH)
+        print(f"Удаляем существующую БД: {DB_PATH}")
+        DB_PATH.unlink()
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute("PRAGMA foreign_keys = ON")
 
     sql_files = [
-        'scripts/create_plants.sql',
-        'scripts/create_plant_events.sql'
+        current_dir / 'scripts' / 'create_plants.sql',
+        current_dir / 'scripts' / 'create_plant_events.sql'
     ]
 
     for sql_file in sql_files:
-        if os.path.exists(sql_file):
-            with open(sql_file, 'r', encoding='utf-8') as f:
-                sql_script = f.read()
+        if sql_file.exists():
+            try:
+                with open(sql_file, 'r', encoding='utf-8') as f:
+                    sql_script = f.read()
                 cursor.executescript(sql_script)
+            except Exception as e:
+                conn.close()
+                return -1
         else:
+            conn.close()
             return -1
 
     conn.commit()
     conn.close()
+    return 0
 
 
 if __name__ == "__main__":
-    create_database()
+    result = create_database()
+    if result == 0:
+        print("База данных успешно создана!")
+    else:
+        print("Создание базы данных завершено с ошибками")
