@@ -15,7 +15,12 @@ def create_sidebar(all_genera, all_species, all_varieties):
             id='name-filter',
             type='text',
             placeholder='Название растения...',
-            className='filter-input'
+            className='filter-input',
+            style={
+                'width': '100%',
+                'boxSizing': 'border-box',
+                'maxWidth': '100%'
+            }
         ),
 
         html.H5("Фильтр по роду:", className="filter-label"),

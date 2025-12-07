@@ -147,8 +147,6 @@ def _get_death_cause_tip(df, selected_genera=None, selected_species=None):
 
 
 def _get_watering_tip(df, selected_genera=None, selected_species=None):
-    """'Растения X поливают раз в Y дней'"""
-
     if 'watering_interval' not in df.columns:
         return None
 
@@ -188,7 +186,7 @@ def _get_seasonality_tip(df, selected_genera=None, selected_species=None):
     dead_plants = df[
         (df['life_status'] == 'погибло') &
         (df['death_month'].notna())
-    ]
+        ]
 
     if dead_plants.empty:
         return None
@@ -259,7 +257,7 @@ def _get_survival_comparison_tip(df):
     if best['count'] < 3 or worst['count'] < 3:
         return None
 
-    if abs(best['rate'] - worst['rate']) < 10:  # Меньше 10% разницы - неинтересно
+    if abs(best['rate'] - worst['rate']) < 10:
         return None
 
     return (

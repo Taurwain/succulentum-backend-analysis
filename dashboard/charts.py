@@ -102,87 +102,98 @@ def create_watering_interval_chart(filtered_df, genera_filter=None):
         return go.Figure()
 
     if genera_filter and len(genera_filter) > 0:
-        genus_data = filtered_df[filtered_df['genus'].isin(genera_filter)]
-        if genus_data.empty:
+        plot_df = filtered_df[filtered_df['genus'].isin(genera_filter)]
+        if plot_df.empty:
             return go.Figure()
-
-        fig = go.Figure()
-
-        for genus in genera_filter:
-            genus_specific = genus_data[genus_data['genus'] == genus]
-
-            alive_watering = genus_specific[genus_specific['life_status'] == 'живое']['watering_interval'].dropna()
-            dead_watering = genus_specific[genus_specific['life_status'] == 'погибло']['watering_interval'].dropna()
-
-            if not alive_watering.empty:
-                fig.add_trace(go.Box(
-                    y=alive_watering,
-                    name=f'{genus} - Живые',
-                    marker=dict(color='#2ecc71'),
-                    boxmean=True,
-                    legendgroup=genus,
-                    showlegend=True
-                ))
-
-            if not dead_watering.empty:
-                fig.add_trace(go.Box(
-                    y=dead_watering,
-                    name=f'{genus} - Погибшие',
-                    marker=dict(color='#e74c3c'),
-                    boxmean=True,
-                    legendgroup=genus,
-                    showlegend=True
-                ))
-
-        if genera_filter and len(genera_filter) == 1:
-            title = f'Интервалы полива: {genera_filter[0]}'
-        else:
-            title = f'Интервалы полива: {len(genera_filter)} родов'
-
     else:
-        genus_counts = filtered_df['genus'].value_counts()
-        if genus_counts.empty:
-            return go.Figure()
+        plot_df = filtered_df
 
-        top_genera = genus_counts.head(3).index.tolist()
-        genus_data = filtered_df[filtered_df['genus'].isin(top_genera)]
+    plot_df = plot_df[plot_df['watering_interval'].notna()]
 
-        fig = go.Figure()
+    if plot_df.empty:
+        return go.Figure()
 
-        for genus in top_genera:
-            genus_specific = genus_data[genus_data['genus'] == genus]
+    alive_df = plot_df[plot_df['life_status'] == 'живое']
+    dead_df = plot_df[plot_df['life_status'] == 'погибло']
 
-            alive_watering = genus_specific[genus_specific['life_status'] == 'живое']['watering_interval'].dropna()
-            dead_watering = genus_specific[genus_specific['life_status'] == 'погибло']['watering_interval'].dropna()
+    fig = go.Figure()
 
-            if not alive_watering.empty:
-                fig.add_trace(go.Box(
-                    y=alive_watering,
-                    name=f'{genus} - Живые',
-                    marker=dict(color='#2ecc71'),
-                    boxmean=True,
-                    legendgroup=genus,
-                    showlegend=True
-                ))
+    if not alive_df.empty:
+        fig.add_trace(go.Histogram(
+            x=alive_df['watering_interval'],
+            name='Живые растения',
+            marker=dict(color='#2ecc71'),
+            opacity=0.7,
+            nbinsx=20,
+            histnorm='percent',
+            hovertemplate='Интервал: %{x:.1f} дней<br>Растений: %{y:.1f}%<extra></extra>'
+        ))
 
-            if not dead_watering.empty:
-                fig.add_trace(go.Box(
-                    y=dead_watering,
-                    name=f'{genus} - Погибшие',
-                    marker=dict(color='#e74c3c'),
-                    boxmean=True,
-                    legendgroup=genus,
-                    showlegend=True
-                ))
+    if not dead_df.empty:
+        fig.add_trace(go.Histogram(
+            x=dead_df['watering_interval'],
+            name='Погибшие растения',
+            marker=dict(color='#e74c3c'),
+            opacity=0.7,
+            nbinsx=20,
+            histnorm='percent',
+            hovertemplate='Интервал: %{x:.1f} дней<br>Растений: %{y:.1f}%<extra></extra>'
+        ))
 
-        title = 'Интервалы полива: Топ-3 рода'
+    if not alive_df.empty:
+        alive_mean = alive_df['watering_interval'].mean()
+        fig.add_vline(
+            x=alive_mean,
+            line_dash="dash",
+            line_color="#27ae60",
+            annotation_text=f"Среднее (живые): {alive_mean:.1f} дней",
+            annotation_position="top right",
+            annotation_font_size=10,
+            annotation_font_color="#27ae60"
+        )
+
+    if not dead_df.empty:
+        dead_mean = dead_df['watering_interval'].mean()
+        fig.add_vline(
+            x=dead_mean,
+            line_dash="dash",
+            line_color="#c0392b",
+            annotation_text=f"Среднее (погибшие): {dead_mean:.1f} дней",
+            annotation_position="top left",
+            annotation_font_size=10,
+            annotation_font_color="#c0392b"
+        )
 
     fig.update_layout(
-        title=title,
-        yaxis_title='Дней между поливами',
+        title={
+            'text': "Распределение интервалов полива",
+            'font': {'size': 16}
+        },
+        xaxis_title='Дней между поливами',
+        yaxis_title='Процент растений',
         height=400,
         showlegend=True,
-        boxmode='group'
+        barmode='overlay',
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+        hovermode='x unified',
+        margin=dict(t=50, b=50, l=50, r=50)
+    )
+
+    fig.update_xaxes(
+        range=[0, plot_df['watering_interval'].max() * 1.1],
+        gridcolor='lightgray',
+        zeroline=False
+    )
+
+    fig.update_yaxes(
+        gridcolor='lightgray',
+        zeroline=False
     )
 
     return fig

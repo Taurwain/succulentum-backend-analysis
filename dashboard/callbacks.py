@@ -113,7 +113,7 @@ def register_callbacks(app, plants_df, initial_data=None):
          Output('current-genera', 'data'),
          Output('current-filters', 'children'),
          Output('quick-stats', 'children'),
-         Output('stats-summary', 'children')],  # Убрали name-filter.value отсюда
+         Output('stats-summary', 'children')],
         [Input('name-filter', 'value'),
          Input('genus-filter', 'value'),
          Input('species-filter', 'value'),
@@ -237,18 +237,14 @@ def register_callbacks(app, plants_df, initial_data=None):
     def update_tips(n_clicks, current_genera, json_data, stored_genera, selected_species):
         ctx = dash.callback_context
 
-        # Получаем текущие данные
         if json_data:
             df = pd.read_json(StringIO(json_data), orient='split')
         else:
             df = plants_df.copy()
 
-        # Генерируем подсказку
         tip = get_smart_tip(df, current_genera, selected_species)
-
-        # Если не удалось сгенерировать подсказку
         if not tip:
-            tip = "Недостаточно данных для генерации подсказки"
+            return dash.no_update, current_genera
 
         return tip, current_genera
 
@@ -299,12 +295,12 @@ def create_stats_summary(df):
 
         html.Div([
             html.Div(avg_lifespan_text, className='stat-value'),
-            html.Div("Средняя жизнь", className='stat-label')
+            html.Div("Средняя продолжительность жизни", className='stat-label')
         ], className='stat-item'),
 
         html.Div([
             html.Div(avg_watering_text, className='stat-value'),
-            html.Div("Средний полив", className='stat-label')
+            html.Div("Средняя частота полива", className='stat-label')
         ], className='stat-item'),
 
         html.Div([
