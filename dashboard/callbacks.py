@@ -12,11 +12,41 @@ from .smart_tips import get_smart_tip
 
 
 def register_callbacks(app, plants_df, initial_data=None):
+    """
+    Registers callbacks for the Dash application.
+
+    Parameters
+    ----------
+    app : dash.Dash
+        Dash application instance
+    plants_df : pandas.DataFrame
+        Main DataFrame containing plant data
+    initial_data : any, optional
+        Initial data for the application (default: None)
+
+    Returns
+    -------
+    None
+        Function registers callbacks directly to the app
+    """
     @app.callback(
         Output('name-filter', 'value'),
         [Input('reset-filters', 'n_clicks')]
     )
     def reset_name_filter(reset_clicks):
+        """
+        Reset the name filter input to empty string.
+
+        Parameters
+        ----------
+        reset_clicks : int
+            Number of clicks on the reset button
+
+        Returns
+        -------
+        str
+            Empty string when reset is clicked, dash.no_update otherwise
+        """
         if reset_clicks and reset_clicks > 0:
             return ''
         return dash.no_update
@@ -28,6 +58,22 @@ def register_callbacks(app, plants_df, initial_data=None):
          Input('reset-filters', 'n_clicks')]
     )
     def update_genus_options(name_filter, reset_clicks):
+        """
+        Update available genus options based on name filter.
+
+        Parameters
+        ----------
+        name_filter : str
+            Current value of name filter input
+        reset_clicks : int
+            Number of clicks on the reset button
+
+        Returns
+        -------
+        tuple
+            First element: List of dicts with genus options
+            Second element: Selected genus value(s) or None on reset
+        """
         ctx = dash.callback_context
 
         if ctx.triggered:
@@ -54,6 +100,24 @@ def register_callbacks(app, plants_df, initial_data=None):
          Input('reset-filters', 'n_clicks')]
     )
     def update_species_options(name_filter, selected_genera, reset_clicks):
+        """
+        Update available species options based on name and genus filters.
+
+        Parameters
+        ----------
+        name_filter : str
+            Current value of name filter input
+        selected_genera : list
+            Currently selected genus values
+        reset_clicks : int
+            Number of clicks on the reset button
+
+        Returns
+        -------
+        tuple
+            First element: List of dicts with species options
+            Second element: Selected species value(s) or None on reset
+        """
         ctx = dash.callback_context
 
         if ctx.triggered:
@@ -84,6 +148,26 @@ def register_callbacks(app, plants_df, initial_data=None):
          Input('reset-filters', 'n_clicks')]
     )
     def update_variety_options(name_filter, selected_genera, selected_species, reset_clicks):
+        """
+        Update available variety options based on name, genus, and species filters.
+
+        Parameters
+        ----------
+        name_filter : str
+            Current value of name filter input
+        selected_genera : list
+            Currently selected genus values
+        selected_species : list
+            Currently selected species values
+        reset_clicks : int
+            Number of clicks on the reset button
+
+        Returns
+        -------
+        tuple
+            First element: List of dicts with variety options
+            Second element: Selected variety value(s) or None on reset
+        """
         ctx = dash.callback_context
 
         if ctx.triggered:
@@ -123,6 +207,33 @@ def register_callbacks(app, plants_df, initial_data=None):
     )
     def update_data_and_stats(name_filter, genus_filter, species_filter, variety_filter,
                               reset_clicks, current_data):
+        """
+        Filter plant data and update statistics based on filter inputs.
+
+        Parameters
+        ----------
+        name_filter : str
+            Current value of name filter input
+        genus_filter : list
+            Currently selected genus values
+        species_filter : list
+            Currently selected species values
+        variety_filter : list
+            Currently selected variety values
+        reset_clicks : int
+            Number of clicks on the reset button
+        current_data : str
+            Current JSON data stored in the filtered-data component
+
+        Returns
+        -------
+        tuple
+            First element: Filtered DataFrame as JSON string
+            Second element: List of currently selected genera
+            Third element: HTML component showing active filters
+            Fourth element: HTML component with quick statistics
+            Fifth element: HTML component with detailed statistics summary
+        """
         ctx = dash.callback_context
 
         if ctx.triggered:
@@ -213,6 +324,25 @@ def register_callbacks(app, plants_df, initial_data=None):
          Input('current-genera', 'data')]
     )
     def update_charts(json_data, genera_filter):
+        """
+        Update all charts with filtered data.
+
+        Parameters
+        ----------
+        json_data : str
+            JSON string of filtered DataFrame
+        genera_filter : list
+            Currently selected genus values for filtering
+
+        Returns
+        -------
+        tuple
+            Four plotly.graph_objs.Figure objects for:
+            1. Mortality chart
+            2. Seasonality chart
+            3. Causes chart
+            4. Watering interval chart
+        """
         if json_data is None:
             return go.Figure(), go.Figure(), go.Figure(), go.Figure()
 
@@ -235,6 +365,28 @@ def register_callbacks(app, plants_df, initial_data=None):
          State('species-filter', 'value')]
     )
     def update_tips(n_clicks, current_genera, json_data, stored_genera, selected_species):
+        """
+        Generate tips for plant care.
+
+        Parameters
+        ----------
+        n_clicks : int
+            Number of clicks on the new tip button
+        current_genera : list
+            Currently selected genus values
+        json_data : str
+            JSON string of filtered DataFrame
+        stored_genera : list
+            Previously stored genus values for comparison
+        selected_species : list
+            Currently selected species values
+
+        Returns
+        -------
+        tuple
+            First element: HTML component with AI tip
+            Second element: Updated list of current genera for state management
+        """
         ctx = dash.callback_context
 
         if json_data:
@@ -250,6 +402,19 @@ def register_callbacks(app, plants_df, initial_data=None):
 
 
 def create_stats_summary(df):
+    """
+    Create HTML summary component with plant statistics.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing plant data
+
+    Returns
+    -------
+    dash.html.Div
+        HTML component with statistics displayed in a grid layout
+    """
     total = len(df)
     alive = (df['life_status'] == 'живое').sum()
     dead = (df['life_status'] == 'погибло').sum()
